@@ -14,8 +14,6 @@ Features include frequency sweeps, amplitude/impedance control, auto-range on th
 
 > Note: The EXE uses PyVISA to talk to the system VISA backend. NI-VISA itself is **not** bundled—users must install it on their machine
 **Verify VISA:**
-- Use **NI MAX** to check that VISA resources (USB/TCPIP/GPIB) are detected.  
-- If running from source, `pyvisa-info` can confirm backend status.
 
 ---
 
