@@ -12,8 +12,7 @@ Features include frequency sweeps, amplitude/impedance control, auto-range on th
 2) (Optional, if you also use Keysight instruments) Install **Keysight IO Libraries Suite** after NI-VISA.  
 3) Download and run `LoadoffTest-<version>-win64.exe` from the **Releases** page.
 
-> Note: The EXE uses PyVISA to talk to the system VISA backend. NI-VISA itself is **not** bundled—users must install it on their machine first.:contentReference[oaicite:1]{index=1}
-
+> Note: The EXE uses PyVISA to talk to the system VISA backend. NI-VISA itself is **not** bundled—users must install it on their machine
 **Verify VISA:**
 - Use **NI MAX** to check that VISA resources (USB/TCPIP/GPIB) are detected.  
 - If running from source, `pyvisa-info` can confirm backend status.
@@ -23,7 +22,7 @@ Features include frequency sweeps, amplitude/impedance control, auto-range on th
 ## 🛠 Run from Source
 
 ### Requirements
-See `requirements.txt` (core libs: pyvisa, numpy, scipy, matplotlib, mplcursors, pyserial, tkinter).:contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
+See `requirements.txt` (core libs: pyvisa, numpy, scipy, matplotlib, mplcursors, pyserial, tkinter)
 
 ### Run
 ```bash
