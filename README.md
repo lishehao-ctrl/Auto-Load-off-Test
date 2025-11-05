@@ -3,9 +3,6 @@
 A Python/Tkinter GUI to control an Arbitrary Waveform Generator (AWG) and an Oscilloscope via VISA (PyVISA).  
 Features include frequency sweeps, amplitude/impedance control, auto-range on the scope, plotting, and basic calibration.
 
-> Entry point: `main.py` launches the Tkinter UI
----
-
 ## 🔌 Supported Instruments
 
 **AWGs**
