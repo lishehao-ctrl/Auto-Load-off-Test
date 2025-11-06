@@ -16,7 +16,7 @@ Features include frequency sweeps, amplitude/impedance control, auto-range on th
 
 ## 🔽 Quick Start (Binary, Windows)
 1. Install **NI-VISA Runtime** (required), then reboot if prompted.  
-2. Download `LoadoffTest-<version>-win64.exe` from the **Releases** page and run it.
+2. Download `test_load_off.exe` from the **Releases** page and run it.
 > The EXE uses PyVISA with the system VISA backend. NI-VISA is **not** bundled; please install it first.
 
 
