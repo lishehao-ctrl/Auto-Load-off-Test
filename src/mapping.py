@@ -16,38 +16,38 @@ class Mapping:
     label_for_lan                      = "LAN"
 
     # ========================= channel =========================
-    label_for_chan_index               = "Channel"
-    label_for_test_chan                = "Test Channel"
-    label_for_ref_chan                 = "Reference Channel"
-    label_for_trig_chan                = "Trigger Channel"
+    label_for_chan_index               = "Chan"
+    label_for_test_chan                = "Test Chan"
+    label_for_ref_chan                 = "Ref Chan"
+    label_for_trig_chan                = "Trig Chan"
 
     # ========================= awg/osc setting =========================
     label_for_set_start_frequency      = "Start Freq"
     label_for_set_stop_frequency       = "Stop Freq"
     label_for_set_step_freq            = "Freq Step"
-    label_for_set_step_num             = "Step Count"
+    label_for_set_step_num             = "Step Ct"
     label_for_set_center_frequency     = "Center Freq"
-    label_for_set_interval_frequency   = "Span"
+    label_for_set_interval_frequency   = "Freq Span"
     label_for_log                      = "Log"
     label_for_freq_unit                = "Unit"
-    label_for_points                   = "Max Samples"
-    label_for_freq                     = "Frequency"
-    label_for_set_amp                  = "Amplitude"
-    label_for_set_imp                  = "Impedance"
+    label_for_points                   = "Max Samp"
+    label_for_freq                     = "Freq"
+    label_for_set_amp                  = "Amp"
+    label_for_set_imp                  = "Imp"
     label_for_imp_r50                  = "R50"
     label_for_imp_inf                  = "High-Z"
-    label_for_coup                     = "Coupling Mode"
-    label_for_yoffset                  = "Center Voltage"
-    label_for_range                    = "Full-Scale Voltage"
+    label_for_coup                     = "Coup"
+    label_for_yoffset                  = "Center V"
+    label_for_range                    = "Full-Scale V"
     label_for_auto_range               = "Auto"
 
     # ========================= correct/reference =========================
-    label_for_single_chan_correct      = "Single Channel"
-    label_for_duo_chan_correct         = "Dual Channel"
-    label_for_no_correct               = "No Calibration"
-    label_for_set_ref                  = "Set As Reference"
-    label_for_load_ref                 = "Load Reference"
-    label_for_enable_ref               = "Enable Calibration"
+    label_for_single_chan_correct      = "Single Chan"
+    label_for_duo_chan_correct         = "Dual Chan"
+    label_for_no_correct               = "No Cali"
+    label_for_set_ref                  = "Set As Ref"
+    label_for_load_ref                 = "Load Ref"
+    label_for_enable_ref               = "Enable Cali"
 
     # ========================= figure =========================
     label_for_figure_gain              = "Gain"
@@ -57,9 +57,9 @@ class Mapping:
     label_for_figure_gaindb_freq       = f"{label_for_figure_gain_db}_vs_{label_for_freq}"
 
     # ========================= load/save data =========================
-    label_for_load_file_to_show        = "Load data file for display"
-    label_for_load_file_to_ref         = "Load data file as reference"
-    label_for_load_config              = "Load config file"
+    label_for_load_file_to_show        = "Load for display"
+    label_for_load_file_to_ref         = "Load for ref"
+    label_for_load_config              = "Load config"
     label_for_save_file                = "Save data"
     label_for_save_config              = "Save config"
     label_for_file_is_saved            = "File saved"
@@ -72,8 +72,8 @@ class Mapping:
 
     # ========================= mappings / options =========================
     mapping_auto_detect                = "Auto Detect"
-    label_for_device_type_awg          = "Arbitrary Waveform Generator"
-    label_for_device_type_osc          = "Oscilloscope"
+    label_for_device_type_awg          = "AWG"
+    label_for_device_type_osc          = "OSC"
 
     mapping_DSG_4102                   = "DSG4102"
     mapping_DSG_836                    = "DSG836"

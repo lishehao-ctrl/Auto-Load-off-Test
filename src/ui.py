@@ -717,19 +717,22 @@ class UI(tk.Tk):
             disable_during_set()  
 
 
+        step_widgets = []
+        step_row_index = 2
+
         def show_step_control(*args):
             """Display step settings according to the "Log Sweep Switch":
 - Logarithm: Display [number of steps]
 - Linear: Display [step size]"""
-            # Empty the container first
-            for child in frame_set_step_freq.winfo_children():
-                child.destroy()
+            nonlocal step_widgets
+            # Empty the previous row before rebuilding it
+            for widget in step_widgets:
+                widget.destroy()
+            step_widgets = []
 
             if self.test.awg.is_log_freq_enabled.get():
-                # —— Logarithm: number of steps —— #
-                tk.Label(frame_set_step_freq, text=f"{Mapping.label_for_set_step_num}: ").pack(side=tk.LEFT, padx=5)
-                etr = tk.Entry(frame_set_step_freq, textvariable=self.test.awg.step_num, width=10)
-                etr.pack(side=tk.LEFT, padx=5)
+                lb_text = f"{Mapping.label_for_set_step_num}: "
+                entry_var = self.test.awg.step_num
 
                 # Normalization: positive numbers, common format, integers
                 def _norm_step_num(_e=None):
@@ -737,29 +740,35 @@ class UI(tk.Tk):
                     TraceVal.force_int_out_focus(var=self.test.awg.step_num)
                     TraceVal.force_positive_out_focus(var=self.test.awg.step_num)
 
-                etr.bind("<FocusOut>", _norm_step_num)
-                etr.bind("<Return>",   _norm_step_num)
+                norm_callback = _norm_step_num
 
             else:
-                # —— Linear: step size —— #
-                tk.Label(frame_set_step_freq, text=f"{Mapping.label_for_set_step_freq}: ").pack(side=tk.LEFT, padx=5)
-                etr = tk.Entry(frame_set_step_freq, textvariable=self.test.awg.step_freq, width=10)
-                etr.pack(side=tk.LEFT, padx=5)
+                lb_text = f"{Mapping.label_for_set_step_freq}: "
+                entry_var = self.test.awg.step_freq
 
                 # Normalization: positive numbers, frequency units
                 def _norm_step_freq(_e=None):
                     TraceVal.force_positive_out_focus(var=self.test.awg.step_freq)
                     TraceVal.freq_out_focus(freq=self.test.awg.step_freq)
 
-                etr.bind("<FocusOut>", _norm_step_freq)
-                etr.bind("<Return>",   _norm_step_freq)
+                norm_callback = _norm_step_freq
 
+            lb_step = tk.Label(frame_awg_start_stop_freq, text=lb_text)
+            lb_step.grid(row=step_row_index, column=0, sticky=tk.E, padx=5, pady=2)
+
+            etr = tk.Entry(frame_awg_start_stop_freq, textvariable=entry_var, width=10)
+            etr.grid(row=step_row_index, column=1, sticky=tk.W, padx=5, pady=2)
+
+            etr.bind("<FocusOut>", norm_callback)
+            etr.bind("<Return>",   norm_callback)
+
+            step_widgets = [lb_step, etr]
 
         def show_correct_modes_control(*args):
             """Generate corresponding controls according to the calibration mode:
-- No calibration: only display trigger mode
-- Single channel: trigger + set as reference/read reference/calibration enable
-- Dual channel: trigger + set as reference/read reference/calibration enable"""
+            - No calibration: only display trigger mode
+            - Single channel: trigger + set as reference/read reference/calibration enable
+            - Dual channel: trigger + set as reference/read reference/calibration enable"""
             # Empty container
             for child in frame_correct_modes.winfo_children():
                 child.destroy()
@@ -768,7 +777,7 @@ class UI(tk.Tk):
             ttk.Combobox(frame_correct_modes,
                          textvariable=self.test.var_correct_mode,
                          values=Mapping.values_correct_modes,
-                         width=5).pack(side=tk.LEFT, padx=5)
+                         width=10).pack(side=tk.LEFT, padx=5)
 
             # Trigger mode (required for all modes)
             ttk.Combobox(frame_correct_modes,
@@ -925,29 +934,24 @@ Otherwise, "magnitude" is forced to be displayed."""
         # Start/stop/step setting container
         frame_awg_start_stop_freq = tk.Frame(frame_awg_freq)
         frame_awg_start_stop_freq.pack(side=tk.LEFT, padx=5)
+        frame_awg_start_stop_freq.grid_columnconfigure(1, weight=1)
 
         # starting frequency
-        frame_set_freq_start = tk.Frame(frame_awg_start_stop_freq)
-        frame_set_freq_start.pack(anchor=tk.W)
+        lb_set_start_freq = tk.Label(frame_awg_start_stop_freq, text=f"{Mapping.label_for_set_start_frequency}: ")
+        lb_set_start_freq.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
-        lb_set_start_freq = tk.Label(frame_set_freq_start, text=f"{Mapping.label_for_set_start_frequency}: ")
-        lb_set_start_freq.pack(side=tk.LEFT, padx=5)
-
-        etr_set_start_freq = tk.Entry(frame_set_freq_start, textvariable=self.test.awg.start_freq, width=10)
-        etr_set_start_freq.pack(side=tk.LEFT, padx=5)
+        etr_set_start_freq = tk.Entry(frame_awg_start_stop_freq, textvariable=self.test.awg.start_freq, width=10)
+        etr_set_start_freq.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: number + frequency string
         etr_set_start_freq.bind("<FocusOut>", lambda e: TraceVal.freq_out_focus(freq=self.test.awg.start_freq))
         etr_set_start_freq.bind("<Return>",   lambda e: TraceVal.freq_out_focus(freq=self.test.awg.start_freq))
 
         # Termination frequency
-        frame_set_freq_end = tk.Frame(frame_awg_start_stop_freq)
-        frame_set_freq_end.pack(anchor=tk.W)
+        lb_set_stop_freq = tk.Label(frame_awg_start_stop_freq, text=f"{Mapping.label_for_set_stop_frequency}: ")
+        lb_set_stop_freq.grid(row=1, column=0, sticky=tk.E, padx=5, pady=2)
 
-        lb_set_stop_freq = tk.Label(frame_set_freq_end, text=f"{Mapping.label_for_set_stop_frequency}: ")
-        lb_set_stop_freq.pack(side=tk.LEFT, padx=5)
-
-        etr_set_stop_freq = tk.Entry(frame_set_freq_end, textvariable=self.test.awg.stop_freq, width=10)
-        etr_set_stop_freq.pack(side=tk.LEFT, padx=5)
+        etr_set_stop_freq = tk.Entry(frame_awg_start_stop_freq, textvariable=self.test.awg.stop_freq, width=10)
+        etr_set_stop_freq.grid(row=1, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: positive number + frequency string
         etr_set_stop_freq.bind("<FocusOut>", lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.stop_freq),
                                                         TraceVal.freq_out_focus(freq=self.test.awg.stop_freq)))
@@ -955,10 +959,6 @@ Otherwise, "magnitude" is forced to be displayed."""
                                                         TraceVal.freq_out_focus(freq=self.test.awg.stop_freq)))
 
         # Step setting (log = number of steps; linear = step size)
-        frame_set_step_freq = tk.Frame(frame_awg_start_stop_freq)
-        frame_set_step_freq.pack(anchor=tk.W)
-
-        # Display different controls depending on whether logarithmic step size is enabled
         show_step_control()
 
         # Center/scan width/unit selection container
@@ -968,12 +968,13 @@ Otherwise, "magnitude" is forced to be displayed."""
         # center frequency
         frame_set_freq_center = tk.Frame(frame_awg_center_freq)
         frame_set_freq_center.pack(anchor=tk.W)
+        frame_set_freq_center.grid_columnconfigure(1, weight=1)
 
         lb_set_center_freq = tk.Label(frame_set_freq_center, text=f"{Mapping.label_for_set_center_frequency}: ")
-        lb_set_center_freq.pack(side=tk.LEFT, padx=5)
+        lb_set_center_freq.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_set_center_freq = tk.Entry(frame_set_freq_center, textvariable=self.test.awg.center_freq, width=10)
-        etr_set_center_freq.pack(side=tk.LEFT, padx=5)
+        etr_set_center_freq.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: positive number + frequency string
         etr_set_center_freq.bind("<FocusOut>", lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.center_freq),
                                                         TraceVal.freq_out_focus(freq=self.test.awg.center_freq)))
@@ -983,12 +984,13 @@ Otherwise, "magnitude" is forced to be displayed."""
         # scan width
         frame_awg_interval_freq = tk.Frame(frame_awg_center_freq)
         frame_awg_interval_freq.pack(anchor=tk.W)
+        frame_awg_interval_freq.grid_columnconfigure(1, weight=1)
 
         lb_set_interval_freq = tk.Label(frame_awg_interval_freq, text=f"{Mapping.label_for_set_interval_frequency}: ")
-        lb_set_interval_freq.pack(side=tk.LEFT, padx=5)
+        lb_set_interval_freq.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_set_interval_freq = tk.Entry(frame_awg_interval_freq, textvariable=self.test.awg.interval_freq, width=10)
-        etr_set_interval_freq.pack(side=tk.LEFT, padx=5)
+        etr_set_interval_freq.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # normalization: frequency string
         etr_set_interval_freq.bind("<FocusOut>", lambda e: TraceVal.freq_out_focus(freq=self.test.awg.interval_freq))
         etr_set_interval_freq.bind("<Return>",   lambda e: TraceVal.freq_out_focus(freq=self.test.awg.interval_freq))
@@ -1015,13 +1017,14 @@ Otherwise, "magnitude" is forced to be displayed."""
         frame_awg_amplitude.pack(anchor=tk.W, padx=5)
 
         frame_awg_amplitude_control = tk.Frame(frame_awg_amplitude)
-        frame_awg_amplitude_control.pack(side=tk.LEFT)
+        frame_awg_amplitude_control.pack(anchor=tk.W)
+        frame_awg_amplitude_control.grid_columnconfigure(1, weight=1)
 
         lb_awg_amplitude = tk.Label(frame_awg_amplitude_control, text=f"{Mapping.label_for_set_amp}: ")
-        lb_awg_amplitude.pack(side=tk.LEFT, padx=5)
+        lb_awg_amplitude.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_awg_amplitude = tk.Entry(frame_awg_amplitude_control, textvariable=self.test.awg.amp, width=10)
-        etr_awg_amplitude.pack(side=tk.LEFT, padx=5)
+        etr_awg_amplitude.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: positive number + amplitude unit
         etr_awg_amplitude.bind("<FocusOut>", lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.amp),
                                                         TraceVal.vpp_out_focus(vpp=self.test.awg.amp)))
@@ -1034,20 +1037,25 @@ Otherwise, "magnitude" is forced to be displayed."""
 
         frame_osc_range = tk.Frame(frame_osc)
         frame_osc_range.pack(anchor=tk.W, padx=5)
+        frame_osc_range.grid_columnconfigure(1, weight=1)
 
         lb_osc_range = tk.Label(frame_osc_range, text=f"{Mapping.label_for_range}: ")
-        lb_osc_range.pack(side=tk.LEFT, padx=5)
+        lb_osc_range.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_osc_range = tk.Entry(frame_osc_range, textvariable=self.test.osc_test.range, width=10)
-        etr_osc_range.pack(side=tk.LEFT)
+        etr_osc_range.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: positive number + amplitude unit
         etr_osc_range.bind("<FocusOut>", lambda e: (TraceVal.force_positive_out_focus(var=self.test.osc_test.range),
                                                     TraceVal.volts_out_focus(curr=self.test.osc_test.range)))
         etr_osc_range.bind("<Return>",   lambda e: (TraceVal.force_positive_out_focus(var=self.test.osc_test.range),
                                                     TraceVal.volts_out_focus(curr=self.test.osc_test.range)))
 
-        btn_osc_range_auto_switch = tk.Checkbutton(frame_osc_range, text=Mapping.label_for_auto_range, variable=self.test.is_auto_osc_range)
-        btn_osc_range_auto_switch.pack(side=tk.LEFT, padx=5)
+        btn_osc_range_auto_switch = tk.Checkbutton(
+            frame_osc_range,
+            text=Mapping.label_for_auto_range,
+            variable=self.test.is_auto_osc_range
+        )
+        btn_osc_range_auto_switch.grid(row=0, column=2, sticky=tk.W, padx=5, pady=2)
 
         # ========================= Right: Figures and Patterns =========================
         frame_right = tk.Frame(frame_load_off_test)
@@ -1334,16 +1342,15 @@ If the variable is currently empty, automatically select the first one (optional
         # Define the function first, then bind/call it!
         def trace_log_freq(*_):
             """Rebuild the 'Step Settings' area based on the log/linear switch."""
-            # Clear old controls
-            for child in frame_set_step_freq.winfo_children():
-                child.destroy()
+            nonlocal trace_step_widgets
+            for widget in trace_step_widgets:
+                widget.destroy()
+            trace_step_widgets = []
 
             if self.test.awg.is_log_freq_enabled.get():
                 # —— Logarithm: number of steps —— #
-                tk.Label(frame_set_step_freq, text=f"{Mapping.label_for_set_step_num}: ").pack(side=tk.LEFT, padx=5)
-
-                etr = tk.Entry(frame_set_step_freq, textvariable=self.test.awg.step_num, width=10)
-                etr.pack(side=tk.LEFT, padx=5)
+                lb_text = f"{Mapping.label_for_set_step_num}: "
+                entry_var = self.test.awg.step_num
 
                 # Normalization: positive integer + unit
                 def _norm_step_num(_e=None):
@@ -1351,22 +1358,29 @@ If the variable is currently empty, automatically select the first one (optional
                     TraceVal.force_int_out_focus(var=self.test.awg.step_num)
                     TraceVal.force_positive_out_focus(var=self.test.awg.step_num)
 
-                etr.bind("<FocusOut>", _norm_step_num)
-                etr.bind("<Return>",   _norm_step_num)
+                norm_callback = _norm_step_num
 
             else:
                 # —— Linear: step size —— #
-                tk.Label(frame_set_step_freq, text=f"{Mapping.label_for_set_step_freq}: ").pack(side=tk.LEFT, padx=5)
-
-                etr = tk.Entry(frame_set_step_freq, textvariable=self.test.awg.step_freq, width=10)
-                etr.pack(side=tk.LEFT, padx=5)
+                lb_text = f"{Mapping.label_for_set_step_freq}: "
+                entry_var = self.test.awg.step_freq
 
                 def _norm_step_freq(_e=None):
                     TraceVal.force_positive_out_focus(var=self.test.awg.step_freq)
                     TraceVal.freq_out_focus(freq=self.test.awg.step_freq)
 
-                etr.bind("<FocusOut>", _norm_step_freq)
-                etr.bind("<Return>",   _norm_step_freq)
+                norm_callback = _norm_step_freq
+
+            lb_step = tk.Label(frame_set_step_freq, text=lb_text)
+            lb_step.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
+
+            etr = tk.Entry(frame_set_step_freq, textvariable=entry_var, width=10)
+            etr.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
+
+            etr.bind("<FocusOut>", norm_callback)
+            etr.bind("<Return>",   norm_callback)
+
+            trace_step_widgets = [lb_step, etr]
 
         def trace_osc_chan_num(*args):
             cmb_osc_channel_index.config(values=list(range(1, self.osc_device.max_chan_num.get() + 1)))
@@ -1482,16 +1496,16 @@ If the variable is currently empty, automatically select the first one (optional
         frame_awg_lan.grid(row=1, column=2, sticky=tk.W, padx=10)
 
         etr_awg_lan_visa_address_1 = tk.Entry(frame_awg_lan, textvariable=self.awg_device.var_lan_ip_list[0], width=10)
-        etr_awg_lan_visa_address_1.pack(side=tk.LEFT)
-        tk.Label(frame_awg_lan, text=".").pack(side=tk.LEFT)
+        etr_awg_lan_visa_address_1.grid(row=0, column=0, sticky=tk.W)
+        tk.Label(frame_awg_lan, text=".").grid(row=0, column=1, padx=2)
         etr_awg_lan_visa_address_2 = tk.Entry(frame_awg_lan, textvariable=self.awg_device.var_lan_ip_list[1], width=10)
-        etr_awg_lan_visa_address_2.pack(side=tk.LEFT)
-        tk.Label(frame_awg_lan, text=".").pack(side=tk.LEFT)
+        etr_awg_lan_visa_address_2.grid(row=0, column=2, sticky=tk.W)
+        tk.Label(frame_awg_lan, text=".").grid(row=0, column=3, padx=2)
         etr_awg_lan_visa_address_3 = tk.Entry(frame_awg_lan, textvariable=self.awg_device.var_lan_ip_list[2], width=10)
-        etr_awg_lan_visa_address_3.pack(side=tk.LEFT)
-        tk.Label(frame_awg_lan, text=".").pack(side=tk.LEFT)
+        etr_awg_lan_visa_address_3.grid(row=0, column=4, sticky=tk.W)
+        tk.Label(frame_awg_lan, text=".").grid(row=0, column=5, padx=2)
         etr_awg_lan_visa_address_4 = tk.Entry(frame_awg_lan, textvariable=self.awg_device.var_lan_ip_list[3], width=10)
-        etr_awg_lan_visa_address_4.pack(side=tk.LEFT)
+        etr_awg_lan_visa_address_4.grid(row=0, column=6, sticky=tk.W)
 
         # Normalization: Force integer + range 0~255 for each segment
         etr_awg_lan_visa_address_1.bind("<FocusOut>", lambda e: (TraceVal.force_int_out_focus(var=self.awg_device.var_lan_ip_list[0]), 
@@ -1564,16 +1578,16 @@ If the variable is currently empty, automatically select the first one (optional
         frame_osc_lan.grid(row=1, column=2, sticky=tk.W, padx=10)
 
         etr_osc_lan_visa_address_1 = tk.Entry(frame_osc_lan, textvariable=self.osc_device.var_lan_ip_list[0], width=10)
-        etr_osc_lan_visa_address_1.pack(side=tk.LEFT)
-        tk.Label(frame_osc_lan, text=".").pack(side=tk.LEFT)
+        etr_osc_lan_visa_address_1.grid(row=0, column=0, sticky=tk.W)
+        tk.Label(frame_osc_lan, text=".").grid(row=0, column=1, padx=2)
         etr_osc_lan_visa_address_2 = tk.Entry(frame_osc_lan, textvariable=self.osc_device.var_lan_ip_list[1], width=10)
-        etr_osc_lan_visa_address_2.pack(side=tk.LEFT)
-        tk.Label(frame_osc_lan, text=".").pack(side=tk.LEFT)
+        etr_osc_lan_visa_address_2.grid(row=0, column=2, sticky=tk.W)
+        tk.Label(frame_osc_lan, text=".").grid(row=0, column=3, padx=2)
         etr_osc_lan_visa_address_3 = tk.Entry(frame_osc_lan, textvariable=self.osc_device.var_lan_ip_list[2], width=10)
-        etr_osc_lan_visa_address_3.pack(side=tk.LEFT)
-        tk.Label(frame_osc_lan, text=".").pack(side=tk.LEFT)
+        etr_osc_lan_visa_address_3.grid(row=0, column=4, sticky=tk.W)
+        tk.Label(frame_osc_lan, text=".").grid(row=0, column=5, padx=2)
         etr_osc_lan_visa_address_4 = tk.Entry(frame_osc_lan, textvariable=self.osc_device.var_lan_ip_list[3], width=10)
-        etr_osc_lan_visa_address_4.pack(side=tk.LEFT)
+        etr_osc_lan_visa_address_4.grid(row=0, column=6, sticky=tk.W)
 
         # Normalization: Force integer + range 0~255 for each segment
         etr_osc_lan_visa_address_1.bind("<FocusOut>", lambda e: (TraceVal.force_int_out_focus(var=self.osc_device.var_lan_ip_list[0]), 
@@ -1628,24 +1642,26 @@ If the variable is currently empty, automatically select the first one (optional
         # starting frequency
         frame_set_freq_start = tk.Frame(frame_awg_setting)
         frame_set_freq_start.pack(anchor=tk.W)
+        frame_set_freq_start.grid_columnconfigure(1, weight=1)
 
         lb_set_start_freq = tk.Label(frame_set_freq_start, text=f"{Mapping.label_for_set_start_frequency}: ")
-        lb_set_start_freq.pack(side=tk.LEFT, padx=5)
+        lb_set_start_freq.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_set_start_freq = tk.Entry(frame_set_freq_start, textvariable=self.test.awg.start_freq, width=10)
-        etr_set_start_freq.pack(side=tk.LEFT, padx=5)
+        etr_set_start_freq.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         etr_set_start_freq.bind("<FocusOut>", lambda e: TraceVal.freq_out_focus(freq=self.test.awg.start_freq))
         etr_set_start_freq.bind("<Return>",   lambda e: TraceVal.freq_out_focus(freq=self.test.awg.start_freq))
 
         # Termination frequency
         frame_set_freq_end = tk.Frame(frame_awg_setting)
         frame_set_freq_end.pack(anchor=tk.W)
+        frame_set_freq_end.grid_columnconfigure(1, weight=1)
 
         lb_set_stop_freq = tk.Label(frame_set_freq_end, text=f"{Mapping.label_for_set_stop_frequency}: ")
-        lb_set_stop_freq.pack(side=tk.LEFT, padx=5)
+        lb_set_stop_freq.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_set_stop_freq = tk.Entry(frame_set_freq_end, textvariable=self.test.awg.stop_freq, width=10)
-        etr_set_stop_freq.pack(side=tk.LEFT, padx=5)
+        etr_set_stop_freq.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         etr_set_stop_freq.bind("<FocusOut>", lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.stop_freq),
                                                         TraceVal.freq_out_focus(freq=self.test.awg.stop_freq)))
         etr_set_stop_freq.bind("<Return>",   lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.stop_freq),
@@ -1654,6 +1670,8 @@ If the variable is currently empty, automatically select the first one (optional
         # step size
         frame_set_step_freq = tk.Frame(frame_awg_setting)
         frame_set_step_freq.pack(anchor=tk.W)
+        frame_set_step_freq.grid_columnconfigure(1, weight=1)
+        trace_step_widgets = []
         self.test.awg.is_log_freq_enabled.trace_add("write", trace_log_freq)
         # first render
         trace_log_freq()
@@ -1661,12 +1679,13 @@ If the variable is currently empty, automatically select the first one (optional
         # Amplitude
         frame_set_amp = tk.Frame(frame_awg_setting)
         frame_set_amp.pack(anchor=tk.W)
+        frame_set_amp.grid_columnconfigure(1, weight=1)
 
         lb_set_amp = tk.Label(frame_set_amp, text=f"{Mapping.label_for_set_amp}: ")
-        lb_set_amp.pack(side=tk.LEFT, padx=5)
+        lb_set_amp.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_set_amp = tk.Entry(frame_set_amp, textvariable=self.test.awg.amp, width=10)
-        etr_set_amp.pack(side=tk.LEFT, padx=5)
+        etr_set_amp.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         etr_set_amp.bind("<FocusOut>", lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.amp),
                                                 TraceVal.vpp_out_focus(vpp=self.test.awg.amp)))
         etr_set_amp.bind("<Return>",   lambda e: (TraceVal.force_positive_out_focus(var=self.test.awg.amp),
@@ -1675,19 +1694,20 @@ If the variable is currently empty, automatically select the first one (optional
         # Output impedance (R50 / high impedance)
         frame_set_awg_imp = tk.Frame(frame_awg_setting)
         frame_set_awg_imp.pack(anchor=tk.W)
+        frame_set_awg_imp.grid_columnconfigure(2, weight=1)
 
         lb_set_awg_imp = tk.Label(frame_set_awg_imp, text=f"{Mapping.label_for_set_imp}: ")
-        lb_set_awg_imp.pack(side=tk.LEFT, padx=5)
+        lb_set_awg_imp.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         rb_btn_set_awg_imp_r50 = tk.Radiobutton(
             frame_set_awg_imp, text=Mapping.label_for_imp_r50, variable=self.test.awg.imp, value=Mapping.mapping_imp_r50
         )
-        rb_btn_set_awg_imp_r50.pack(side=tk.LEFT, padx=5)
+        rb_btn_set_awg_imp_r50.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
 
         rb_btn_set_awg_imp_inf = tk.Radiobutton(
             frame_set_awg_imp, text=Mapping.label_for_imp_inf, variable=self.test.awg.imp, value=Mapping.mapping_imp_high_z
         )
-        rb_btn_set_awg_imp_inf.pack(side=tk.LEFT, padx=5)
+        rb_btn_set_awg_imp_inf.grid(row=0, column=2, sticky=tk.W, padx=5, pady=2)
 
 
         # ======================= OSC (oscilloscope) setting area =======================
@@ -1736,12 +1756,13 @@ If the variable is currently empty, automatically select the first one (optional
         # —— Full scale —— #
         frame_osc_range = tk.Frame(frame_osc_setting)
         frame_osc_range.pack(anchor=tk.W)
+        frame_osc_range.grid_columnconfigure(1, weight=1)
 
         lb_osc_range = tk.Label(frame_osc_range, text=Mapping.label_for_range)
-        lb_osc_range.pack(side=tk.LEFT, padx=5)
+        lb_osc_range.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_osc_range = tk.Entry(frame_osc_range, textvariable=self.test.osc_test.range, width=10)
-        etr_osc_range.pack(side=tk.LEFT, padx=5)
+        etr_osc_range.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: Range should be a positive number
         etr_osc_range.bind(
             "<FocusOut>",
@@ -1757,12 +1778,13 @@ If the variable is currently empty, automatically select the first one (optional
         # —— Center display voltage —— #
         frame_osc_yoffset = tk.Frame(frame_osc_setting)
         frame_osc_yoffset.pack(anchor=tk.W)
+        frame_osc_yoffset.grid_columnconfigure(1, weight=1)
 
         lb_osc_yoffset = tk.Label(frame_osc_yoffset, text=Mapping.label_for_yoffset)
-        lb_osc_yoffset.pack(side=tk.LEFT, padx=5)
+        lb_osc_yoffset.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_osc_yoffset = tk.Entry(frame_osc_yoffset, textvariable=self.test.osc_test.yoffset, width=10)
-        etr_osc_yoffset.pack(side=tk.LEFT, padx=5)
+        etr_osc_yoffset.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: Positive numbers are not enforced here (negative values ​​are allowed for bias)
         etr_osc_yoffset.bind("<FocusOut>", lambda e: TraceVal.volts_out_focus(curr=self.test.osc_test.yoffset)) 
         etr_osc_yoffset.bind("<Return>",   lambda e: TraceVal.volts_out_focus(curr=self.test.osc_test.yoffset))
@@ -1770,12 +1792,13 @@ If the variable is currently empty, automatically select the first one (optional
         # —— Number of sampling points —— #
         frame_osc_points = tk.Frame(frame_osc_setting)
         frame_osc_points.pack(anchor=tk.W)
+        frame_osc_points.grid_columnconfigure(1, weight=1)
 
         lb_osc_points = tk.Label(frame_osc_points, text=Mapping.label_for_points)
-        lb_osc_points.pack(side=tk.LEFT, padx=5)
+        lb_osc_points.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         etr_osc_points = tk.Entry(frame_osc_points, textvariable=self.test.osc_test.points, width=10)
-        etr_osc_points.pack(side=tk.LEFT, padx=5)
+        etr_osc_points.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
         # Normalization: positive integers, common numeric format
 
         etr_osc_points.bind(
@@ -1798,9 +1821,10 @@ If the variable is currently empty, automatically select the first one (optional
         # ——Input impedance (R50 / high impedance)—— #
         frame_set_osc_imp = tk.Frame(frame_osc_setting)
         frame_set_osc_imp.pack(anchor=tk.W)
+        frame_set_osc_imp.grid_columnconfigure(2, weight=1)
 
         lb_set_osc_imp = tk.Label(frame_set_osc_imp, text=f"{Mapping.label_for_set_imp}: ")
-        lb_set_osc_imp.pack(side=tk.LEFT, padx=5)
+        lb_set_osc_imp.grid(row=0, column=0, sticky=tk.E, padx=5, pady=2)
 
         rb_btn_set_osc_imp_r50 = tk.Radiobutton(
             frame_set_osc_imp,
@@ -1808,7 +1832,7 @@ If the variable is currently empty, automatically select the first one (optional
             variable=self.test.osc_test.imp,
             value=Mapping.mapping_imp_r50
         )
-        rb_btn_set_osc_imp_r50.pack(side=tk.LEFT, padx=5)
+        rb_btn_set_osc_imp_r50.grid(row=0, column=1, sticky=tk.W, padx=5, pady=2)
 
         rb_btn_set_osc_imp_inf = tk.Radiobutton(
             frame_set_osc_imp,
@@ -1816,7 +1840,7 @@ If the variable is currently empty, automatically select the first one (optional
             variable=self.test.osc_test.imp,
             value=Mapping.mapping_imp_high_z
         )
-        rb_btn_set_osc_imp_inf.pack(side=tk.LEFT, padx=5)
+        rb_btn_set_osc_imp_inf.grid(row=0, column=2, sticky=tk.W, padx=5, pady=2)
 
 
     def auto_load_config(self):
@@ -1836,7 +1860,8 @@ If the variable is currently empty, automatically select the first one (optional
 Note:
 - fp_data is only used as the source of "base name + directory"; extensions in different formats are uniformly generated by this function.
 - Will save: mat, txt, csv, two pictures (gain/freq and dB/freq)
-- Text/CSV column set changes with "Calibration switch/Calibration mode/Trigger mode""""
+- Text/CSV column set changes with "Calibration switch/Calibration mode/Trigger mode"
+"""
 
         # ============ 1) Prepare the data to be saved (convert to 1D vectors, length aligned) ============
         mat_freq       = np.round(self.test.results[Mapping.mapping_freq],            4)
